@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using Harmony;
@@ -13,10 +12,6 @@ namespace MoreFactionInteraction.NoCommsConsole
 	[StaticConstructorOnStartup]
 	static class HarmonyPatches
 	{
-		internal static readonly Assembly MFIAssembly =
-			LoadedModManager.GetMod<MoreFactionInteractionMod>().Content.assemblies.loadedAssemblies
-				.First(assembly => assembly.GetName().Name == "MoreFactionInteraction");
-
 		internal static IEnumerable<CodeInstruction> FakeAlwaysHaveCommsConsole(IEnumerable<CodeInstruction> instructions, bool hasMapParam)
 		{
 			var playerHasPoweredCommsConsoleMethod =
@@ -57,7 +52,7 @@ namespace MoreFactionInteraction.NoCommsConsole
 	{
 		[HarmonyTargetMethod]
 		static MethodInfo CalculateMethod(HarmonyInstance harmony) =>
-			HarmonyPatches.MFIAssembly.GetType("MoreFactionInteraction.IncidentWorker_MysticalShaman").GetMethod("CanFireNowSub", AccessTools.all);
+			typeof(MoreFactionInteractionMod).Assembly.GetType("MoreFactionInteraction.IncidentWorker_MysticalShaman").GetMethod("CanFireNowSub", AccessTools.all);
 
 		[HarmonyTranspiler]
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
@@ -69,7 +64,7 @@ namespace MoreFactionInteraction.NoCommsConsole
 	{
 		[HarmonyTargetMethod]
 		static MethodInfo CalculateMethod(HarmonyInstance harmony) =>
-			HarmonyPatches.MFIAssembly.GetType("MoreFactionInteraction.IncidentWorker_RoadWorks").GetMethod("CanFireNowSub", AccessTools.all);
+			typeof(MoreFactionInteractionMod).Assembly.GetType("MoreFactionInteraction.IncidentWorker_RoadWorks").GetMethod("CanFireNowSub", AccessTools.all);
 
 		[HarmonyTranspiler]
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
