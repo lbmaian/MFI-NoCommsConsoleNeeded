@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <name>More Faction Interation Patch - No Comms Console Needed</name>
+  <author>lbmaian</author>
+  <url></url>
+  <supportedVersions>
+    <li>1.0</li>
+  </supportedVersions>
+  <description>Patch to Mehni's More Faction Interfaction mod to remove comms console requirements.</description>
+</ModMetaData>
