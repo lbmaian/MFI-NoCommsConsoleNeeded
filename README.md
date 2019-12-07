@@ -1,7 +1,7 @@
-# More Faction Interation Patch - No Comms Console Needed
-Patch for the RimWorld [More Faction Interaction mod](https://github.com/Mehni/MoreFactionInteraction) to remove the powered comms console requirement for its incidents.
+# More Faction Interaction Patch - No Comms Console Needed
+Patch for the RimWorld [More Faction Interaction (MFI) mod](https://github.com/Mehni/MoreFactionInteraction) to remove the powered comms console requirement for its incidents.
 
-Primarily to allow medieval/tribal-only playthroughs to have full access to MFI features.
+This is primarily to allow medieval/tribal-only playthroughs to have full access to MFI features.
 
 There are currently only a couple MFI incidents that require a powered comms console, which this patches out:
 
