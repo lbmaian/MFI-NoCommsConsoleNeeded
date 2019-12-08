@@ -26,10 +26,9 @@ namespace MoreFactionInteraction.NoCommsConsole
 		static readonly MethodInfo silverInStorageTrackerMapHasEnoughMethod =
 			typeof(SilverInStorageTracker).GetMethod(nameof(SilverInStorageTracker.MapHasEnough));
 
-		// TODO: Remove if this ends up being unused.
 		public static bool HasSilverInTradeBeaconRangeMethod(MethodInfo method)
 		{
-			var instructions = MethodBodyReader.GetInstructions(generator: null, method: method);
+			var instructions = MethodReader.GetInstructions(method);
 			return instructions.Any(instruction => instruction.opcode == OpCodes.Call && IsTradeBeaconMethod(instruction.operand as MethodInfo));
 		}
 
@@ -51,14 +50,49 @@ namespace MoreFactionInteraction.NoCommsConsole
 						yield return new CodeInstruction(OpCodes.Call, silverInStorageTrackerPlayerHomeMapWithMostMethod);
 					else if (method == colonyHasEnoughSilverMethod)
 						yield return new CodeInstruction(OpCodes.Call, silverInStorageTrackerMapHasEnoughMethod);
-					continue;
 				}
-				yield return instruction;
+				else if (instruction.opcode == OpCodes.Ldstr && instruction.operand is "NeedSilverLaunchable")
+				{
+					yield return new CodeInstruction(OpCodes.Ldstr, "NeedSilverInStorage");
+				}
+				else
+				{
+					yield return instruction;
+				}
 			}
 		}
 
 		static bool IsTradeBeaconMethod(MethodInfo method) =>
 			method == launchSilverMethod || method == playerHomeMapWithMostLaunchableSilverMethod || method == colonyHasEnoughSilverMethod;
+	}
+
+	class MethodReader
+	{
+		static readonly FieldInfo localsField = typeof(MethodBodyReader).GetField("locals", AccessTools.all);
+		static readonly FieldInfo variablesField = typeof(MethodBodyReader).GetField("variables", AccessTools.all);
+		static readonly FieldInfo ilInstructionsField = typeof(MethodBodyReader).GetField("ilInstructions", AccessTools.all);
+
+		public static List<ILInstruction> GetInstructions(MethodInfo method)
+		{
+			var reader = new MethodBodyReader(method, generator: null);
+			// Workaround for MethodBodyReader bug where opcodes that have (Short)InlineVar operand type (such as ldloc.s)
+			// can result in a NullReferenceException due to MethodBodyReader.variables being null when generator is null.
+			var locals = (IList<LocalVariableInfo>)localsField.GetValue(reader);
+			variablesField.SetValue(reader, new LocalBuilder[locals.Count]);
+			reader.ReadInstructions();
+			var instructions = (List<ILInstruction>)ilInstructionsField.GetValue(reader);
+			foreach (var instruction in instructions)
+			{
+				var operandType = instruction.opcode.OperandType;
+				if ((operandType == OperandType.ShortInlineVar || operandType == OperandType.InlineVar) &&
+					instruction.opcode.Name.Contains("loc") && instruction.operand is LocalVariableInfo local)
+				{
+					// We can't construct a LocalBuilder without an ILGenerator, so just use the LocalVariableInfo for argument.
+					instruction.argument = local;
+				}
+			}
+			return instructions;
+		}
 	}
 
 	class SilverInStorageTracker
@@ -80,13 +114,7 @@ namespace MoreFactionInteraction.NoCommsConsole
 
 		readonly Dictionary<int, SilverInStorage> silverInStoragePerMapCache = new Dictionary<int, SilverInStorage>();
 
-		delegate bool InSellablePositionDelegate(Thing t, out string reason);
-
-		static readonly InSellablePositionDelegate InSellablePosition =
-			(InSellablePositionDelegate)Delegate.CreateDelegate(typeof(InSellablePositionDelegate),
-				// InSellablePosition is an instance method of TradeDeal but it doesn't use its TradeDeal instance at all, so null instance is fine.
-				firstArgument: null,
-				typeof(TradeDeal).GetMethod("InSellablePosition", AccessTools.all));
+		delegate bool InSellablePositionDelegate(TradeDeal tradeDeal, Thing t, out string reason);
 
 		SilverInStorage GetSilverInStorage(Map map)
 		{
@@ -99,14 +127,47 @@ namespace MoreFactionInteraction.NoCommsConsole
 					// TradeUtility.PlayerSellableNow // This is always true for silver.
 					!thing.Position.Fogged(thing.Map) &&
 					(map.areaManager.Home[thing.Position] || thing.IsInAnyStorage()) &&
-					// Based off Pawn_TraderTracker.ReachableForTrade.
-					colonists.Any(pawn => map.reachability.CanReach(pawn.Position, thing, PathEndMode.Touch, TraverseMode.PassDoors, Danger.Some)) &&
-					InSellablePosition(thing, out _));
+					ReachableForTrade(map, colonists, thing) &&
+					InSellablePosition(thing));
 				silverInStorage = new SilverInStorage(silverStacks, silverStacks.Sum(silver => silver.stackCount));
-				Log.Message("Found " + silverInStorage);
+				//Log.Message("Found " + silverInStorage);
 				silverInStoragePerMapCache.Add(map.uniqueID, silverInStorage);
 			}
 			return silverInStorage;
+		}
+
+		// Based off Pawn_TraderTracker.ReachableForTrade,
+		// generalized so that any arbitrary free colonist on the map can meet the requirement.
+		static bool ReachableForTrade(Map map, List<Pawn> colonists, Thing thing) =>
+			colonists.Any(pawn => map.reachability.CanReach(pawn.Position, thing, PathEndMode.Touch, TraverseMode.PassDoors, Danger.Some));
+
+		// Based off TradeDeal.InSellablePosition, which can't be called because it's an instance method,
+		// and we can't construct a TradeDeal instance since its constructor ends up calling AddAllTradeables,
+		// which is unwanted. The method doesn't even use its instance (it could be a static method),\
+		// but in RimWorld's Mono/Unity version, MethodInfo.Invoke for an instance method requires non-null target.
+		static bool InSellablePosition(Thing thing)
+		{
+			if (!thing.Spawned)
+				return false;
+			// Don't need to check whether thing.Position.Fogged(thing.Map), since it's already checked in caller.
+			if (thing.GetRoom() is var room)
+			{
+				var map = thing.Map;
+				var radialCellCount = GenRadial.NumCellsInRadius(RoofCollapseUtility.RoofMaxSupportDistance);
+				for (var radialCellIndex = 0; radialCellIndex < radialCellCount; radialCellIndex++)
+				{
+					var position = thing.Position + GenRadial.RadialPattern[radialCellIndex];
+					if (position.InBounds(map) && position.GetRoom(map) == room)
+					{
+						foreach (var positionThing in position.GetThingList(map))
+						{
+							if (positionThing.PreventPlayerSellingThingsNearby(out _))
+								return false;
+						}
+					}
+				}
+			}
+			return true;
 		}
 
 		IEnumerable<Thing> GetStacks(Map map) => GetSilverInStorage(map).stacks;
@@ -117,15 +178,20 @@ namespace MoreFactionInteraction.NoCommsConsole
 		// Static with instance as last parameter for transpiler convenience.
 		public static void PayFee(Map map, int fee, SilverInStorageTracker silverInStorageTracker)
 		{
-			foreach (var silverStack in silverInStorageTracker.GetStacks(map))
+			if (fee == 0)
+				return;
+			// Need to evaluate the stacks enumerable into a list first, since splitting silver stacks modifies the stacks enumerable itself,
+			// and if enumerated directly, would have caused an InvalidOperationException.
+			var silverStacks = silverInStorageTracker.GetStacks(map).ToList();
+			foreach (var silverStack in silverStacks)
 			{
-				if (fee == 0)
-					return;
 				var silverStackPayment = Math.Min(fee, silverStack.stackCount);
 				silverStack.SplitOff(silverStackPayment).Destroy();
 				fee -= silverStackPayment;
+				if (fee == 0)
+					return;
 			}
-			Log.Error("Could not find any more " + ThingDefOf.Silver + " to pay fee");
+			Log.Error($"Could not find any more {ThingDefOf.Silver} to pay remaining fee {fee}.");
 		}
 
 		// Replacement for TradeUtility.PlayerHomeMapWithMostLaunchableSilver().

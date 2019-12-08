@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Reflection.Emit;
 using Harmony;
 using MoreFactionInteraction.MoreFactionWar;
 using RimWorld;
@@ -10,6 +11,7 @@ namespace MoreFactionInteraction.NoCommsConsole
 {
 	using static NoCommsConsoleNeededPatcher;
 	using static TechLevelComparisonPatcher;
+	using static SilverInTradeBeaconRangeToSilverInStoragePatcher;
 
 	[StaticConstructorOnStartup]
 	static class HarmonyPatches
@@ -30,9 +32,6 @@ namespace MoreFactionInteraction.NoCommsConsole
 		}
 	}
 
-	// TODO: Patch TradeUtility.PlayerHomeMapWithMostLaunchableSilver/ColonyHasEnoughSilver/LaunchSilver calls
-	// to consider silver in any reachable storage/stockpile, not just within orbital trade beacons.
-	// TODO: Patch "NeedSilverLaunchable".Translate to "NotEnoughSilver".Translate.
 	// TODO: Patch vanilla IncidentWorker_RansomDemand/ChoiceLetter_RansomDemand as well?
 
 	[HarmonyPatch]
@@ -75,6 +74,26 @@ namespace MoreFactionInteraction.NoCommsConsole
 	}
 
 	[HarmonyPatch]
+	static class IncidentWorker_MysticalShaman_SilverInTradeBeaconRange_Patch
+	{
+		static readonly Type targetType =
+			typeof(MoreFactionInteractionMod).Assembly.GetType("MoreFactionInteraction.IncidentWorker_MysticalShaman");
+
+		[HarmonyTargetMethods]
+		static IEnumerable<MethodBase> CalculateMethods(HarmonyInstance harmony) =>
+			targetType.FindLambdaMethods(method =>
+				method.ReturnType == typeof(void) &&
+				method.GetParameters().Length == 0 &&
+				method.Name.Contains("TryExecuteWorker") &&
+				HasSilverInTradeBeaconRangeMethod(method))
+			.Prepend(targetType.GetMethod("TryExecuteWorker", AccessTools.all));
+
+		[HarmonyTranspiler]
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator) =>
+			ReplaceSilverInTradeBeaconRangeWithSilverInStorageTranspiler(instructions, ilGenerator);
+	}
+
+	[HarmonyPatch]
 	static class IncidentWorker_RoadWorks_CanFireNowSub_Patch
 	{
 		static readonly Type targetType =
@@ -86,6 +105,26 @@ namespace MoreFactionInteraction.NoCommsConsole
 		[HarmonyTranspiler]
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
 			FakeAlwaysHaveCommsConsoleTranspiler(instructions, hasMapParam: false);
+	}
+
+	[HarmonyPatch]
+	static class IncidentWorker_RoadWorks_SilverInTradeBeaconRange_Patch
+	{
+		static readonly Type targetType =
+			typeof(MoreFactionInteractionMod).Assembly.GetType("MoreFactionInteraction.IncidentWorker_RoadWorks");
+
+		[HarmonyTargetMethods]
+		static IEnumerable<MethodBase> CalculateMethods(HarmonyInstance harmony) =>
+			targetType.FindLambdaMethods(method =>
+				method.ReturnType == typeof(void) &&
+				method.GetParameters().Length == 0 &&
+				method.Name.Contains("TryExecuteWorker") &&
+				HasSilverInTradeBeaconRangeMethod(method))
+			.Prepend(targetType.GetMethod("TryExecuteWorker", AccessTools.all));
+
+		[HarmonyTranspiler]
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator) =>
+			ReplaceSilverInTradeBeaconRangeWithSilverInStorageTranspiler(instructions, ilGenerator);
 	}
 
 	[HarmonyPatch]
@@ -101,6 +140,23 @@ namespace MoreFactionInteraction.NoCommsConsole
 	}
 
 	[HarmonyPatch]
+	static class IncidentWorker_ReverseTradeRequest_SilverInTradeBeaconRange_Patch
+	{
+		[HarmonyTargetMethods]
+		static IEnumerable<MethodBase> CalculateMethods(HarmonyInstance harmony) =>
+			typeof(IncidentWorker_ReverseTradeRequest).FindLambdaMethods(method =>
+				method.ReturnType == typeof(void) &&
+				method.GetParameters().Length == 0 &&
+				method.Name.Contains("TryExecuteWorker") &&
+				HasSilverInTradeBeaconRangeMethod(method))
+			.Prepend(typeof(IncidentWorker_ReverseTradeRequest).GetMethod("TryExecuteWorker", AccessTools.all));
+
+		[HarmonyTranspiler]
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator) =>
+			ReplaceSilverInTradeBeaconRangeWithSilverInStorageTranspiler(instructions, ilGenerator);
+	}
+
+	[HarmonyPatch]
 	static class IncidentWorker_Extortion_CanFireNowSub_Patch
 	{
 		[HarmonyTargetMethod]
@@ -110,6 +166,23 @@ namespace MoreFactionInteraction.NoCommsConsole
 		[HarmonyTranspiler]
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
 			FakeAlwaysHaveCommsConsoleTranspiler(instructions, hasMapParam: true);
+	}
+
+	[HarmonyPatch]
+	static class ChoiceLetter_ExtortionDemand_SilverInTradeBeaconRange_Patch
+	{
+		[HarmonyTargetMethods]
+		static IEnumerable<MethodBase> CalculateMethods(HarmonyInstance harmony) =>
+			typeof(ChoiceLetter_ExtortionDemand).FindLambdaMethods(method =>
+				method.ReturnType == typeof(void) &&
+				method.GetParameters().Length == 0 &&
+				method.Name.Contains("get_Choices") &&
+				HasSilverInTradeBeaconRangeMethod(method))
+			.Prepend(typeof(ChoiceLetter_ExtortionDemand).FindIteratorMethod(enumeratorType => enumeratorType.Name.Contains("get_Choices")));
+
+		[HarmonyTranspiler]
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator) =>
+			ReplaceSilverInTradeBeaconRangeWithSilverInStorageTranspiler(instructions, ilGenerator);
 	}
 
 	[HarmonyPatch]

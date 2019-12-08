@@ -1,9 +1,11 @@
 # More Faction Interaction Patch - No Comms Console Needed
-Patch/submod for the RimWorld [More Faction Interaction (MFI) mod](https://github.com/Mehni/MoreFactionInteraction) to remove the powered comms console requirement for its incidents.
+Patch/submod for the RimWorld [More Faction Interaction (MFI) mod](https://github.com/Mehni/MoreFactionInteraction) to both:
+1. Remove the powered comms console requirement for some of its incidents.
+2. Allow the silver that is needed for some of its incidents to be in any storage/stockpile rather than within the range of trade beacons.
 
 This is primarily to allow medieval/tribal-only playthroughs to have full access to MFI features.
 
-There are currently only a couple MFI incidents that require a powered comms console, which this patches out:
+The following MFI incidents are patched to both remove the need for a powered comms console and allow the silver fee to paid from any storage/stockpile (rather than near trade beacons):
 * Mystical shaman  
   Also patches the requirement that there must exist a non-hostile neolithic (tribal) faction (that the shaman belongs to) such that only a non-hostile faction of any tech level is required.
 * Roadworks
