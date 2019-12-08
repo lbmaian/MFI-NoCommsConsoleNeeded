@@ -8,6 +8,9 @@ using Verse;
 
 namespace MoreFactionInteraction.NoCommsConsole
 {
+	using static NoCommsConsoleNeededPatcher;
+	using static TechLevelComparisonPatcher;
+
 	[StaticConstructorOnStartup]
 	static class HarmonyPatches
 	{
@@ -43,7 +46,7 @@ namespace MoreFactionInteraction.NoCommsConsole
 
 		[HarmonyTranspiler]
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
-			NoCommsConsoleNeededPatcher.FakeAlwaysHaveCommsConsoleTranspiler(instructions, hasMapParam: false);
+			FakeAlwaysHaveCommsConsoleTranspiler(instructions, hasMapParam: false);
 	}
 
 	[HarmonyPatch]
@@ -53,29 +56,17 @@ namespace MoreFactionInteraction.NoCommsConsole
 			typeof(MoreFactionInteractionMod).Assembly.GetType("MoreFactionInteraction.IncidentWorker_MysticalShaman");
 
 		[HarmonyTargetMethods]
-		static IEnumerable<MethodBase> CalculateMethods(HarmonyInstance harmony)
-		{
-			// Lambda code is in compiler-generated non-public instance methods on compiler-generated non-public nested classes.
-			foreach (var type in targetType.GetNestedTypes(BindingFlags.NonPublic))
-			{
-				foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic))
-				{
-					if (MatchMethod(method))
-						yield return method;
-				}
-			}
-		}
-
-		static bool MatchMethod(MethodInfo method) =>
-			method.ReturnType == typeof(bool) &&
-			method.GetParameters() is ParameterInfo[] parameters &&
-			parameters.Length == 1 && parameters[0].ParameterType == typeof(Faction) &&
-			(method.Name.Contains("CanFireNowSub") || method.Name.Contains("TryExecuteWorker"));
+		static IEnumerable<MethodBase> CalculateMethods(HarmonyInstance harmony) =>
+			targetType.FindLambdaMethods(method =>
+				method.ReturnType == typeof(bool) &&
+				method.GetParameters() is ParameterInfo[] parameters &&
+				parameters.Length == 1 && parameters[0].ParameterType == typeof(Faction) &&
+				(method.Name.Contains("CanFireNowSub") || method.Name.Contains("TryExecuteWorker")));
 
 		// Effectively removes the faction.def.TechLevel <= TechLevel.Neolithic check.
 		[HarmonyTranspiler]
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
-			TechLevelComparisonPatcher.TechLevelComparisonTranspiler(instructions, TechLevel.Neolithic, TechLevel.Archotech);
+			TechLevelComparisonTranspiler(instructions, TechLevel.Neolithic, TechLevel.Archotech);
 
 		// MFI bugfix: Ensure that the mystical shaman's faction isn't the player faction.
 		// Note: The Faction parameter must match that of the method being patched; hence "Faction f".
@@ -86,13 +77,15 @@ namespace MoreFactionInteraction.NoCommsConsole
 	[HarmonyPatch]
 	static class IncidentWorker_RoadWorks_CanFireNowSub_Patch
 	{
+		static readonly Type targetType =
+			typeof(MoreFactionInteractionMod).Assembly.GetType("MoreFactionInteraction.IncidentWorker_RoadWorks");
+
 		[HarmonyTargetMethod]
-		static MethodInfo CalculateMethod(HarmonyInstance harmony) =>
-			typeof(MoreFactionInteractionMod).Assembly.GetType("MoreFactionInteraction.IncidentWorker_RoadWorks").GetMethod("CanFireNowSub", AccessTools.all);
+		static MethodInfo CalculateMethod(HarmonyInstance harmony) => targetType.GetMethod("CanFireNowSub", AccessTools.all);
 
 		[HarmonyTranspiler]
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
-			NoCommsConsoleNeededPatcher.FakeAlwaysHaveCommsConsoleTranspiler(instructions, hasMapParam: false);
+			FakeAlwaysHaveCommsConsoleTranspiler(instructions, hasMapParam: false);
 	}
 
 	[HarmonyPatch]
@@ -104,7 +97,7 @@ namespace MoreFactionInteraction.NoCommsConsole
 
 		[HarmonyTranspiler]
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
-			NoCommsConsoleNeededPatcher.FakeAlwaysHaveCommsConsoleTranspiler(instructions, hasMapParam: true);
+			FakeAlwaysHaveCommsConsoleTranspiler(instructions, hasMapParam: true);
 	}
 
 	[HarmonyPatch]
@@ -116,7 +109,7 @@ namespace MoreFactionInteraction.NoCommsConsole
 
 		[HarmonyTranspiler]
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
-			NoCommsConsoleNeededPatcher.FakeAlwaysHaveCommsConsoleTranspiler(instructions, hasMapParam: true);
+			FakeAlwaysHaveCommsConsoleTranspiler(instructions, hasMapParam: true);
 	}
 
 	[HarmonyPatch]
@@ -128,35 +121,23 @@ namespace MoreFactionInteraction.NoCommsConsole
 
 		[HarmonyTranspiler]
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
-			NoCommsConsoleNeededPatcher.FakeAlwaysHaveCommsConsoleTranspiler(instructions, hasMapParam: true);
+			FakeAlwaysHaveCommsConsoleTranspiler(instructions, hasMapParam: true);
 	}
 
 	[HarmonyPatch]
 	static class IncidentWorker_WoundedCombatants_TechLevel_Patch
 	{
 		[HarmonyTargetMethods]
-		static IEnumerable<MethodBase> CalculateMethods(HarmonyInstance harmony)
-		{
-			yield return typeof(IncidentWorker_WoundedCombatants).GetMethod("TryExecuteWorker", AccessTools.all);
-			// Lambda code is in compiler-generated non-public instance methods on compiler-generated non-public nested classes.
-			foreach (var type in typeof(IncidentWorker_WoundedCombatants).GetNestedTypes(BindingFlags.NonPublic))
-			{
-				foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic))
-				{
-					if (MatchMethod(method))
-						yield return method;
-				}
-			}
-		}
-
-		static bool MatchMethod(MethodInfo method) =>
-			method.ReturnType == typeof(bool) &&
-			method.GetParameters() is ParameterInfo[] parameters &&
-			parameters.Length == 1 && parameters[0].ParameterType == typeof(Faction) &&
-			method.Name.Contains("FindAlliedWarringFaction");
+		static IEnumerable<MethodBase> CalculateMethods(HarmonyInstance harmony) =>
+			typeof(IncidentWorker_WoundedCombatants).FindLambdaMethods(method =>
+				method.ReturnType == typeof(bool) &&
+				method.GetParameters() is ParameterInfo[] parameters &&
+				parameters.Length == 1 && parameters[0].ParameterType == typeof(Faction) &&
+				method.Name.Contains("FindAlliedWarringFaction"))
+			.Prepend(typeof(IncidentWorker_WoundedCombatants).GetMethod("TryExecuteWorker", AccessTools.all));
 
 		[HarmonyTranspiler]
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
-			TechLevelComparisonPatcher.TechLevelComparisonTranspiler(instructions, TechLevel.Industrial, TechLevel.Neolithic);
+			TechLevelComparisonTranspiler(instructions, TechLevel.Industrial, TechLevel.Neolithic);
 	}
 }

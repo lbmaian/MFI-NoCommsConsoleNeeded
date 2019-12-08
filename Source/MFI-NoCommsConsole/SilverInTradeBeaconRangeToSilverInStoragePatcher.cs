@@ -17,8 +17,6 @@ namespace MoreFactionInteraction.NoCommsConsole
 		static readonly MethodInfo playerHomeMapWithMostLaunchableSilverMethod =
 			typeof(TradeUtility).GetMethod(nameof(TradeUtility.PlayerHomeMapWithMostLaunchableSilver));
 		static readonly MethodInfo colonyHasEnoughSilverMethod = typeof(TradeUtility).GetMethod(nameof(TradeUtility.ColonyHasEnoughSilver));
-		static readonly List<MethodInfo> tradeBeaconMethods =
-			new List<MethodInfo>() { launchSilverMethod, playerHomeMapWithMostLaunchableSilverMethod, colonyHasEnoughSilverMethod };
 
 		static readonly ConstructorInfo silverInStorageTrackerConstructor = typeof(SilverInStorageTracker).GetConstructor(Type.EmptyTypes);
 		static readonly MethodInfo silverInStorageTrackerPayFeeMethod =
@@ -28,10 +26,11 @@ namespace MoreFactionInteraction.NoCommsConsole
 		static readonly MethodInfo silverInStorageTrackerMapHasEnoughMethod =
 			typeof(SilverInStorageTracker).GetMethod(nameof(SilverInStorageTracker.MapHasEnough));
 
+		// TODO: Remove if this ends up being unused.
 		public static bool HasSilverInTradeBeaconRangeMethod(MethodInfo method)
 		{
 			var instructions = MethodBodyReader.GetInstructions(generator: null, method: method);
-			return instructions.Any(instruction => instruction.opcode == OpCodes.Call && tradeBeaconMethods.Contains(instruction.operand as MethodInfo));
+			return instructions.Any(instruction => instruction.opcode == OpCodes.Call && IsTradeBeaconMethod(instruction.operand as MethodInfo));
 		}
 
 		public static IEnumerable<CodeInstruction> ReplaceSilverInTradeBeaconRangeWithSilverInStorageTranspiler(
@@ -42,7 +41,7 @@ namespace MoreFactionInteraction.NoCommsConsole
 			yield return new CodeInstruction(OpCodes.Stloc_S, silverInStorageTrackerVar);
 			foreach (var instruction in instructions)
 			{
-				if (instruction.opcode == OpCodes.Call && instruction.operand is MethodInfo method && tradeBeaconMethods.Contains(method))
+				if (instruction.opcode == OpCodes.Call && instruction.operand is MethodInfo method && IsTradeBeaconMethod(method))
 				{
 					// Assumption: None of the replaced instructions have labels (targets of branches).
 					yield return new CodeInstruction(OpCodes.Ldloc_S, silverInStorageTrackerVar);
@@ -57,6 +56,9 @@ namespace MoreFactionInteraction.NoCommsConsole
 				yield return instruction;
 			}
 		}
+
+		static bool IsTradeBeaconMethod(MethodInfo method) =>
+			method == launchSilverMethod || method == playerHomeMapWithMostLaunchableSilverMethod || method == colonyHasEnoughSilverMethod;
 	}
 
 	class SilverInStorageTracker
