@@ -9,6 +9,7 @@
     <Authors>lbmaian</Authors>
     <Copyright>Copyright © 2019</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RootNamespace>MoreFactionInteraction.NoCommsConsole</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugType>full</DebugType>
