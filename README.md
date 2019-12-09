@@ -13,6 +13,7 @@ The following MFI incidents are patched to both remove the need for a powered co
 * Pirate extortion
 * Wounded combatants (allied faction involved in faction war requests permission to arrive with wounded)  
   Note: Pawns still arrive in drop pods, and the dialog still talks about transport pods, radios, mortars, etc.
+* (Vanilla incident) Ransom demand
 
 ## Credits
 * lbmaian - author

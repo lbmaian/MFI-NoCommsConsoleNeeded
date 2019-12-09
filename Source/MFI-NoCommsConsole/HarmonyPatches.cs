@@ -10,8 +10,8 @@ using Verse;
 namespace MoreFactionInteraction.NoCommsConsole
 {
 	using static NoCommsConsoleNeededPatcher;
-	using static TechLevelComparisonPatcher;
 	using static SilverInTradeBeaconRangeToSilverInStoragePatcher;
+	using static TechLevelComparisonPatcher;
 
 	[StaticConstructorOnStartup]
 	static class HarmonyPatches
@@ -32,7 +32,39 @@ namespace MoreFactionInteraction.NoCommsConsole
 		}
 	}
 
-	// TODO: Patch vanilla IncidentWorker_RansomDemand/ChoiceLetter_RansomDemand as well?
+	// Note: RansomDemand is a vanilla incident rather than a MFI incident being patched.
+	[HarmonyPatch]
+	static class IncidentWorker_RansomDemand_CanFireNowSub_Patch
+	{
+		[HarmonyTargetMethod]
+		static MethodInfo CalculateMethod(HarmonyInstance harmony) =>
+			typeof(IncidentWorker_RansomDemand).GetMethod("CanFireNowSub", AccessTools.all);
+
+		[HarmonyTranspiler]
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
+			FakeAlwaysHaveCommsConsoleTranspiler(instructions, hasMapParam: true);
+	}
+
+	// Note: Part of the vanilla RansomDemand incident.
+	[HarmonyPatch]
+	static class ChoiceLetter_RansomDemand_SilverInTradeBeaconRange_Patch
+	{
+		[HarmonyTargetMethods]
+		static IEnumerable<MethodBase> CalculateMethods(HarmonyInstance harmony) =>
+			typeof(ChoiceLetter_RansomDemand).FindLambdaMethods(method =>
+				method.ReturnType == typeof(void) &&
+				method.GetParameters().Length == 0 &&
+				// Note: RimWorld was compiled in a way such that the lambda methods are called "<>m__x" where x is a number.
+				// In case RimWorld is ever recompiled in a different way, only going to assume that lambda methods start with "<".
+				method.Name.StartsWith("<") &&
+				HasSilverInTradeBeaconRangeMethod(method))
+			.Prepend(typeof(ChoiceLetter_RansomDemand).FindIteratorMethod(enumeratorType =>
+				typeof(IEnumerable<DiaOption>).IsAssignableFrom(enumeratorType)));
+
+		[HarmonyTranspiler]
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator) =>
+			ReplaceSilverInTradeBeaconRangeWithSilverInStorageTranspiler(instructions, ilGenerator);
+	}
 
 	[HarmonyPatch]
 	static class IncidentWorker_MysticalShaman_CanFireNowSub_Patch
@@ -60,14 +92,16 @@ namespace MoreFactionInteraction.NoCommsConsole
 				method.ReturnType == typeof(bool) &&
 				method.GetParameters() is ParameterInfo[] parameters &&
 				parameters.Length == 1 && parameters[0].ParameterType == typeof(Faction) &&
-				(method.Name.Contains("CanFireNowSub") || method.Name.Contains("TryExecuteWorker")));
+				(method.Name.StartsWith("<CanFireNowSub>") || method.Name.StartsWith("<TryExecuteWorker>")));
 
 		// Effectively removes the faction.def.TechLevel <= TechLevel.Neolithic check.
 		[HarmonyTranspiler]
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
 			TechLevelComparisonTranspiler(instructions, TechLevel.Neolithic, TechLevel.Archotech);
 
-		// MFI bugfix: Ensure that the mystical shaman's faction isn't the player faction.
+		// Fix for MFI oversight: Ensure that the mystical shaman's faction isn't the player faction.
+		// It was technically possible for the player faction to have neolithic tech and have access to powered comms console
+		// and trade beacons, especially when other mods are in play.
 		// Note: The Faction parameter must match that of the method being patched; hence "Faction f".
 		[HarmonyPrefix]
 		static bool Prefix(Faction f) => f != Faction.OfPlayer;
@@ -84,7 +118,7 @@ namespace MoreFactionInteraction.NoCommsConsole
 			targetType.FindLambdaMethods(method =>
 				method.ReturnType == typeof(void) &&
 				method.GetParameters().Length == 0 &&
-				method.Name.Contains("TryExecuteWorker") &&
+				method.Name.StartsWith("<TryExecuteWorker>") &&
 				HasSilverInTradeBeaconRangeMethod(method))
 			.Prepend(targetType.GetMethod("TryExecuteWorker", AccessTools.all));
 
@@ -118,7 +152,7 @@ namespace MoreFactionInteraction.NoCommsConsole
 			targetType.FindLambdaMethods(method =>
 				method.ReturnType == typeof(void) &&
 				method.GetParameters().Length == 0 &&
-				method.Name.Contains("TryExecuteWorker") &&
+				method.Name.StartsWith("<TryExecuteWorker>") &&
 				HasSilverInTradeBeaconRangeMethod(method))
 			.Prepend(targetType.GetMethod("TryExecuteWorker", AccessTools.all));
 
@@ -147,7 +181,7 @@ namespace MoreFactionInteraction.NoCommsConsole
 			typeof(IncidentWorker_ReverseTradeRequest).FindLambdaMethods(method =>
 				method.ReturnType == typeof(void) &&
 				method.GetParameters().Length == 0 &&
-				method.Name.Contains("TryExecuteWorker") &&
+				method.Name.StartsWith("<TryExecuteWorker>") &&
 				HasSilverInTradeBeaconRangeMethod(method))
 			.Prepend(typeof(IncidentWorker_ReverseTradeRequest).GetMethod("TryExecuteWorker", AccessTools.all));
 
@@ -176,9 +210,10 @@ namespace MoreFactionInteraction.NoCommsConsole
 			typeof(ChoiceLetter_ExtortionDemand).FindLambdaMethods(method =>
 				method.ReturnType == typeof(void) &&
 				method.GetParameters().Length == 0 &&
-				method.Name.Contains("get_Choices") &&
+				method.Name.StartsWith("<get_Choices>") &&
 				HasSilverInTradeBeaconRangeMethod(method))
-			.Prepend(typeof(ChoiceLetter_ExtortionDemand).FindIteratorMethod(enumeratorType => enumeratorType.Name.Contains("get_Choices")));
+			.Prepend(typeof(ChoiceLetter_ExtortionDemand).FindIteratorMethod(enumeratorType =>
+				typeof(IEnumerable<DiaOption>).IsAssignableFrom(enumeratorType)));
 
 		[HarmonyTranspiler]
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator) =>
@@ -206,7 +241,7 @@ namespace MoreFactionInteraction.NoCommsConsole
 				method.ReturnType == typeof(bool) &&
 				method.GetParameters() is ParameterInfo[] parameters &&
 				parameters.Length == 1 && parameters[0].ParameterType == typeof(Faction) &&
-				method.Name.Contains("FindAlliedWarringFaction"))
+				method.Name.StartsWith("<FindAlliedWarringFaction>"))
 			.Prepend(typeof(IncidentWorker_WoundedCombatants).GetMethod("TryExecuteWorker", AccessTools.all));
 
 		[HarmonyTranspiler]
