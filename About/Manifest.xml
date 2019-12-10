@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Manifest>
+    <identifier>MFI-NoCommsConsoleNeeded</identifier>
+    <version>1.0</version>
+    <dependencies>
+        <li>MoreFactionInteraction</li>
+    </dependencies>
+    <manifestUri>https://raw.githubusercontent.com/lbmaian/MFI-NoCommsConsoleNeeded/master/About/Manifest.xml</manifestUri>
+    <downloadUri>https://github.com/lbmaian/MFI-NoCommsConsoleNeeded</downloadUri>
+</Manifest>
