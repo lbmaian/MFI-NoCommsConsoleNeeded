@@ -1,5 +1,5 @@
 # More Faction Interaction Patch - No Comms Console Needed
-Patch/submod for the RimWorld [More Faction Interaction (MFI) mod](https://github.com/Mehni/MoreFactionInteraction) to both:
+Patch/submod for the RimWorld [More Faction Interaction (MFI) mod] to both:
 1. Remove the powered comms console requirement for some of its incidents.
 2. Allow the silver that is needed for some of its incidents to be in any storage/stockpile rather than within the range of trade beacons. That is, it uses the same "what items are reachable to be sold" logic as in-map trading with visiting trade caravans.
 
@@ -24,6 +24,14 @@ Note: Any mod, which patches the behavior of "what items are reachable to be sol
 
 ## Credits
 * lbmaian - author
-* pardeike - [Harmony library](https://github.com/pardeike/Harmony) that's used for patching at runtime
-* Mehni - [More Faction Interaction mod](https://github.com/Mehni/MoreFactionInteraction) that this is a submod of
-* Ludeon - [RimWorld](https://rimworldgame.com/)
+* pardeike - [Harmony library] that's used for patching at runtime
+* Mehni - [More Faction Interaction (MFI) mod] that this is a submod of
+* Ludeon - [RimWorld]
+
+## Links
+* Steam: https://steamcommunity.com/workshop/filedetails/?id=1933275277
+* GitHub: https://github.com/lbmaian/MFI-NoCommsConsoleNeeded
+
+[Harmony library]: https://github.com/pardeike/Harmony
+[More Faction Interaction (MFI) mod]: https://github.com/Mehni/MoreFactionInteraction
+[RimWorld]: https://rimworldgame.com/
