@@ -6,5 +6,23 @@
   <supportedVersions>
     <li>1.0</li>
   </supportedVersions>
-  <description>Patch/submod for Mehni's More Faction Interaction mod to remove powered comms console and trade beacon requirements.</description>
+  <description><![CDATA[<b>More Faction Interaction Patch - No Comms Console Needed</b>
+
+Patch/submod for the RimWorld [More Faction Interaction (MFI) mod] to both:
+1. Remove the powered comms console requirement for some of its incidents.
+2. Allow the silver that is needed for some of its incidents to be in any storage/stockpile rather than within the range of trade beacons. That is, it uses the same "what items are reachable to be sold" logic as in-map trading with visiting trade caravans.
+
+This is primarily to allow medieval/tribal-only playthroughs to have full access to MFI features.
+
+The following MFI incidents are patched to both remove the need for a powered comms console and allow the silver fee to paid from any storage/stockpile (rather than near trade beacons):
+* Mystical shaman
+  Also patches the requirement that there must exist a non-hostile neolithic (tribal) faction (that the shaman belongs to) such that only a non-hostile non-player faction of any tech level is required.
+* Roadworks
+* Reverse trade request
+* Pirate extortion
+* Wounded combatants (allied faction involved in faction war requests permission to arrive with wounded)
+  Note: Pawns still arrive in drop pods, and the dialog still talks about transport pods, radios, mortars, etc.
+* (Vanilla incident) Ransom demand
+]]>
+  </description>
 </ModMetaData>
