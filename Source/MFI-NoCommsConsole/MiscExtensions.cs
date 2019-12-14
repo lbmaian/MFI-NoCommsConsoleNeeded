@@ -9,7 +9,7 @@ namespace MoreFactionInteraction.NoCommsConsole
 	{
 		const BindingFlags lambdaMethodBindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
 
-		// Note: In .NET Framework 3.5 and below, IEnumerable<T> is not covariant, i.e.
+		// Note: In .NET Framework 3.5 and below, type parameter T in IEnumerable<T> is not covariant, i.e.
 		// an IEnumerable<MethodInfo> is not an IEnumerable<MethodBase>. Since this is used in HarmonyTargetMethods-annotated
 		// methods, which must have IEnumerable<MethodBase>, we must return IEnumerable<MethodBase> here as well.
 		public static IEnumerable<MethodBase> FindLambdaMethods(this Type targetType, Func<MethodInfo, bool> methodMatcher)
