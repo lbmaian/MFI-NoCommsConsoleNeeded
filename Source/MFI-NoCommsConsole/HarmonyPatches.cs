@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using Harmony;
+using MoreFactionInteraction.More_Flavour;
 using MoreFactionInteraction.MoreFactionWar;
 using RimWorld;
 using Verse;
@@ -125,6 +126,38 @@ namespace MoreFactionInteraction.NoCommsConsole
 		[HarmonyTranspiler]
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator) =>
 			ReplaceSilverInTradeBeaconRangeWithSilverInStorageTranspiler(instructions, ilGenerator);
+	}
+
+	// MysticalShaman.Notify_CaravanArrived uses the MechHealSerum ThingDef, which may not be available if removed by another mod
+	// (such as "Lord of the Rims - The Third Age" or "Medieval - Vanilla").
+	// Workaround is to instead instantiate CompUseEffect_FixWorstHealthCondition directly.
+	[HarmonyPatch(typeof(MysticalShaman), nameof(MysticalShaman.Notify_CaravanArrived))]
+	static class MysticalShaman_Notify_CaravanArrived_Patch
+	{
+		static readonly MethodInfo tryGetCompMethod =
+			typeof(ThingCompUtility).GetMethod(nameof(ThingCompUtility.TryGetComp)).MakeGenericMethod(typeof(CompUseEffect_FixWorstHealthCondition));
+		static readonly MethodInfo getHealWorstHealthConditionCompUseEffectMethod =
+			typeof(MysticalShaman_Notify_CaravanArrived_Patch).GetMethod(nameof(GetHealWorstHealthConditionCompUseEffect), AccessTools.all);
+
+		[HarmonyTranspiler]
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+		{
+			var instructionList = instructions as List<CodeInstruction> ?? new List<CodeInstruction>(instructions);
+			var replaceStartIndex = instructionList.FindIndex(instruction =>
+				instruction.opcode == OpCodes.Ldstr && instruction.operand is "MechSerumHealer");
+			var replaceEndIndex = instructionList.FindIndex(replaceStartIndex + 1, instruction =>
+				instruction.opcode == OpCodes.Call && instruction.operand == tryGetCompMethod);
+			instructionList[replaceEndIndex] = new CodeInstruction(OpCodes.Call, getHealWorstHealthConditionCompUseEffectMethod);
+			instructionList.RemoveRange(replaceStartIndex, replaceEndIndex - replaceStartIndex);
+			return instructionList;
+		}
+
+		static CompUseEffect GetHealWorstHealthConditionCompUseEffect()
+		{
+			var compUseEffect = new CompUseEffect_FixWorstHealthCondition();
+			compUseEffect.Initialize(new CompProperties_UseEffect());
+			return compUseEffect;
+		}
 	}
 
 	[HarmonyPatch]

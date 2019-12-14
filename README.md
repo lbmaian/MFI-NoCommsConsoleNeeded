@@ -6,13 +6,14 @@ Patch/submod for the RimWorld [More Faction Interaction (MFI) mod] to both:
 This is primarily to allow medieval/tribal-only playthroughs to have full access to MFI features.
 
 The following MFI incidents are patched to both remove the need for a powered comms console and allow the silver fee to paid from any storage/stockpile (rather than near trade beacons):
-* Mystical shaman  
-  Also patches the requirement that there must exist a non-hostile neolithic (tribal) faction (that the shaman belongs to) such that only a non-hostile non-player faction of any tech level is required.
+* Mystical shaman
+  * Now also works even if the healer mech serum item definition is removed by a mod (such as the [Lord of the Rims - The Third Age mod]).
+  * Also patches the requirement that there must exist a non-hostile neolithic (tribal) faction (that the shaman belongs to) such that only a non-hostile non-player faction of any tech level is required.
 * Roadworks
 * Reverse trade request
 * Pirate extortion
-* Wounded combatants (allied faction involved in faction war requests permission to arrive with wounded)  
-  Note: Pawns still arrive in drop pods, and the dialog still talks about transport pods, radios, mortars, etc.
+* Wounded combatants (allied faction involved in faction war requests permission to arrive with wounded)
+  * Note: Pawns still arrive in drop pods, and the dialog still talks about transport pods, radios, mortars, etc.
 * (Vanilla incident) Ransom demand
 
 ## Compatibility
@@ -34,4 +35,5 @@ Note: Any mod, which patches the behavior of "what items are reachable to be sol
 
 [Harmony library]: https://github.com/pardeike/Harmony
 [More Faction Interaction (MFI) mod]: https://github.com/Mehni/MoreFactionInteraction
+[Lord of the Rims - The Third Age mod]: https://github.com/Lord-of-the-Rims-DevTeam/Lord-of-the-Rims---The-Third-Age
 [RimWorld]: https://rimworldgame.com/
