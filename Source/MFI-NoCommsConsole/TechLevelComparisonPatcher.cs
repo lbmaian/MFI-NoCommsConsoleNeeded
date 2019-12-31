@@ -10,34 +10,21 @@ namespace MoreFactionInteraction.NoCommsConsole
 	class TechLevelComparisonPatcher
 	{
 		// This is sufficient for the TechLevel enum, which has a max int value of 7.
-		static OpCode Ldc_I4_x(int x)
+		static OpCode Ldc_I4_x(int x) => x switch
 		{
-			switch (x)
-			{
-			case 0:
-				return OpCodes.Ldc_I4_0;
-			case 1:
-				return OpCodes.Ldc_I4_1;
-			case 2:
-				return OpCodes.Ldc_I4_2;
-			case 3:
-				return OpCodes.Ldc_I4_3;
-			case 4:
-				return OpCodes.Ldc_I4_4;
-			case 5:
-				return OpCodes.Ldc_I4_5;
-			case 6:
-				return OpCodes.Ldc_I4_6;
-			case 7:
-				return OpCodes.Ldc_I4_7;
-			case 8:
-				return OpCodes.Ldc_I4_8;
-			default:
-				throw new ArgumentOutOfRangeException($"{x} must be >= 0 and <= 8");
-			}
-		}
+			0 => OpCodes.Ldc_I4_0,
+			1 => OpCodes.Ldc_I4_1,
+			2 => OpCodes.Ldc_I4_2,
+			3 => OpCodes.Ldc_I4_3,
+			4 => OpCodes.Ldc_I4_4,
+			5 => OpCodes.Ldc_I4_5,
+			6 => OpCodes.Ldc_I4_6,
+			7 => OpCodes.Ldc_I4_7,
+			8 => OpCodes.Ldc_I4_8,
+			_ => throw new ArgumentOutOfRangeException($"{x} must be >= 0 and <= 8"),
+		};
 
-		static readonly FieldInfo factionDefTechLevelField = typeof(FactionDef).GetField(nameof(FactionDef.techLevel));
+		static readonly FieldInfo fieldof_FactionDef_techLevel = typeof(FactionDef).GetField(nameof(FactionDef.techLevel));
 
 		public static IEnumerable<CodeInstruction> TechLevelComparisonTranspiler(IEnumerable<CodeInstruction> instructions,
 			TechLevel origTechLevel, TechLevel newTechLevel)
@@ -56,7 +43,7 @@ namespace MoreFactionInteraction.NoCommsConsole
 						continue;
 					}
 				}
-				if (instruction.opcode == OpCodes.Ldfld && instruction.operand == factionDefTechLevelField)
+				if (instruction.opcode == OpCodes.Ldfld && instruction.operand == fieldof_FactionDef_techLevel)
 					accessedTechLevelField = true;
 				yield return instruction;
 			}

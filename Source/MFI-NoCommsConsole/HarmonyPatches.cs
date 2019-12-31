@@ -134,9 +134,9 @@ namespace MoreFactionInteraction.NoCommsConsole
 	[HarmonyPatch(typeof(MysticalShaman), nameof(MysticalShaman.Notify_CaravanArrived))]
 	static class MysticalShaman_Notify_CaravanArrived_Patch
 	{
-		static readonly MethodInfo tryGetCompMethod =
+		static readonly MethodInfo methodof_ThingCompUtility_TryGetComp =
 			typeof(ThingCompUtility).GetMethod(nameof(ThingCompUtility.TryGetComp)).MakeGenericMethod(typeof(CompUseEffect_FixWorstHealthCondition));
-		static readonly MethodInfo getHealWorstHealthConditionCompUseEffectMethod =
+		static readonly MethodInfo methodof_MysticalShaman_Notify_CaravanArrived_Patch_GetHealWorstHealthConditionCompUseEffect =
 			typeof(MysticalShaman_Notify_CaravanArrived_Patch).GetMethod(nameof(GetHealWorstHealthConditionCompUseEffect), AccessTools.all);
 
 		[HarmonyTranspiler]
@@ -146,8 +146,9 @@ namespace MoreFactionInteraction.NoCommsConsole
 			var replaceStartIndex = instructionList.FindIndex(instruction =>
 				instruction.opcode == OpCodes.Ldstr && instruction.operand is "MechSerumHealer");
 			var replaceEndIndex = instructionList.FindIndex(replaceStartIndex + 1, instruction =>
-				instruction.opcode == OpCodes.Call && instruction.operand == tryGetCompMethod);
-			instructionList[replaceEndIndex] = new CodeInstruction(OpCodes.Call, getHealWorstHealthConditionCompUseEffectMethod);
+				instruction.opcode == OpCodes.Call && instruction.operand == methodof_ThingCompUtility_TryGetComp);
+			instructionList[replaceEndIndex] = new CodeInstruction(OpCodes.Call,
+				methodof_MysticalShaman_Notify_CaravanArrived_Patch_GetHealWorstHealthConditionCompUseEffect);
 			instructionList.RemoveRange(replaceStartIndex, replaceEndIndex - replaceStartIndex);
 			return instructionList;
 		}

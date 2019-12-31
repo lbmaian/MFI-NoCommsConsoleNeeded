@@ -3,6 +3,7 @@
     <ProjectGuid>{4CE95BB4-59AF-46D8-B9EA-934B637A4F5E}</ProjectGuid>
     <NoStdLib>True</NoStdLib>
     <TargetFramework>net35</TargetFramework>
+    <LangVersion>8.0</LangVersion>
     <AppendTargetFrameworkToOutputPath>False</AppendTargetFrameworkToOutputPath>
     <AssemblyTitle>MFI-NoCommsConsole</AssemblyTitle>
     <Product>MFI-NoCommsConsole</Product>

@@ -10,14 +10,16 @@ namespace MoreFactionInteraction.NoCommsConsole
 {
 	class NoCommsConsoleNeededPatcher
 	{
-		static readonly MethodInfo playerHasPoweredCommsConsoleMethod =
+		static readonly MethodInfo methodof_CommsConsoleUtility_PlayerHasPoweredCommsConsole =
 			typeof(CommsConsoleUtility).GetMethod(nameof(CommsConsoleUtility.PlayerHasPoweredCommsConsole), Type.EmptyTypes);
-		static readonly MethodInfo playerHasPoweredCommsConsoleForMapMethod =
+		static readonly MethodInfo methodof_CommsConsoleUtility_PlayerHasPoweredCommsConsole_Map =
 			typeof(CommsConsoleUtility).GetMethod(nameof(CommsConsoleUtility.PlayerHasPoweredCommsConsole), new[] { typeof(Map) });
 
 		public static IEnumerable<CodeInstruction> FakeAlwaysHaveCommsConsoleTranspiler(IEnumerable<CodeInstruction> instructions, bool hasMapParam)
 		{
-			var commsConsoleUtilityMethod = hasMapParam ? playerHasPoweredCommsConsoleForMapMethod : playerHasPoweredCommsConsoleMethod;
+			var commsConsoleUtilityMethod = hasMapParam ?
+				methodof_CommsConsoleUtility_PlayerHasPoweredCommsConsole_Map :
+				methodof_CommsConsoleUtility_PlayerHasPoweredCommsConsole;
 			foreach (var instruction in instructions)
 			{
 				if (instruction.opcode == OpCodes.Call && instruction.operand == commsConsoleUtilityMethod)

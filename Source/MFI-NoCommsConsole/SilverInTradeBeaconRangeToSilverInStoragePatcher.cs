@@ -13,17 +13,20 @@ namespace MoreFactionInteraction.NoCommsConsole
 {
 	class SilverInTradeBeaconRangeToSilverInStoragePatcher
 	{
-		static readonly MethodInfo launchSilverMethod = typeof(TradeUtility).GetMethod(nameof(TradeUtility.LaunchSilver));
-		static readonly MethodInfo playerHomeMapWithMostLaunchableSilverMethod =
+		static readonly MethodInfo methodof_TradeUtility_LaunchSilver =
+			typeof(TradeUtility).GetMethod(nameof(TradeUtility.LaunchSilver));
+		static readonly MethodInfo methodof_TradeUtility_PlayerHomeMapWithMostLaunchableSilver =
 			typeof(TradeUtility).GetMethod(nameof(TradeUtility.PlayerHomeMapWithMostLaunchableSilver));
-		static readonly MethodInfo colonyHasEnoughSilverMethod = typeof(TradeUtility).GetMethod(nameof(TradeUtility.ColonyHasEnoughSilver));
+		static readonly MethodInfo methodof_TradeUtility_ColonyHasEnoughSilver =
+			typeof(TradeUtility).GetMethod(nameof(TradeUtility.ColonyHasEnoughSilver));
 
-		static readonly ConstructorInfo silverInStorageTrackerConstructor = typeof(SilverInStorageTracker).GetConstructor(Type.EmptyTypes);
-		static readonly MethodInfo silverInStorageTrackerPayFeeMethod =
+		static readonly ConstructorInfo methodof_SilverInStorageTracker_ctor =
+			typeof(SilverInStorageTracker).GetConstructor(Type.EmptyTypes);
+		static readonly MethodInfo methodof_SilverInStorageTracker_PayFee =
 			typeof(SilverInStorageTracker).GetMethod(nameof(SilverInStorageTracker.PayFee));
-		static readonly MethodInfo silverInStorageTrackerPlayerHomeMapWithMostMethod =
+		static readonly MethodInfo methodof_SilverInStorageTracker_PlayerHomeMapWithMost =
 			typeof(SilverInStorageTracker).GetMethod(nameof(SilverInStorageTracker.PlayerHomeMapWithMost));
-		static readonly MethodInfo silverInStorageTrackerMapHasEnoughMethod =
+		static readonly MethodInfo methodof_SilverInStorageTracker_MapHasEnough =
 			typeof(SilverInStorageTracker).GetMethod(nameof(SilverInStorageTracker.MapHasEnough));
 
 		public static bool HasSilverInTradeBeaconRangeMethod(MethodInfo method)
@@ -36,7 +39,7 @@ namespace MoreFactionInteraction.NoCommsConsole
 			IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator)
 		{
 			var silverInStorageTrackerVar = ilGenerator.DeclareLocal(typeof(SilverInStorageTracker));
-			yield return new CodeInstruction(OpCodes.Newobj, silverInStorageTrackerConstructor);
+			yield return new CodeInstruction(OpCodes.Newobj, methodof_SilverInStorageTracker_ctor);
 			yield return new CodeInstruction(OpCodes.Stloc_S, silverInStorageTrackerVar);
 			foreach (var instruction in instructions)
 			{
@@ -44,12 +47,12 @@ namespace MoreFactionInteraction.NoCommsConsole
 				{
 					// Assumption: None of the replaced instructions have labels (targets of branches).
 					yield return new CodeInstruction(OpCodes.Ldloc_S, silverInStorageTrackerVar);
-					if (method == launchSilverMethod)
-						yield return new CodeInstruction(OpCodes.Call, silverInStorageTrackerPayFeeMethod);
-					else if (method == playerHomeMapWithMostLaunchableSilverMethod)
-						yield return new CodeInstruction(OpCodes.Call, silverInStorageTrackerPlayerHomeMapWithMostMethod);
-					else if (method == colonyHasEnoughSilverMethod)
-						yield return new CodeInstruction(OpCodes.Call, silverInStorageTrackerMapHasEnoughMethod);
+					if (method == methodof_TradeUtility_LaunchSilver)
+						yield return new CodeInstruction(OpCodes.Call, methodof_SilverInStorageTracker_PayFee);
+					else if (method == methodof_TradeUtility_PlayerHomeMapWithMostLaunchableSilver)
+						yield return new CodeInstruction(OpCodes.Call, methodof_SilverInStorageTracker_PlayerHomeMapWithMost);
+					else if (method == methodof_TradeUtility_ColonyHasEnoughSilver)
+						yield return new CodeInstruction(OpCodes.Call, methodof_SilverInStorageTracker_MapHasEnough);
 				}
 				else if (instruction.opcode == OpCodes.Ldstr && instruction.operand is "NeedSilverLaunchable")
 				{
@@ -63,24 +66,26 @@ namespace MoreFactionInteraction.NoCommsConsole
 		}
 
 		static bool IsTradeBeaconMethod(MethodInfo method) =>
-			method == launchSilverMethod || method == playerHomeMapWithMostLaunchableSilverMethod || method == colonyHasEnoughSilverMethod;
+			method == methodof_TradeUtility_LaunchSilver ||
+			method == methodof_TradeUtility_PlayerHomeMapWithMostLaunchableSilver ||
+			method == methodof_TradeUtility_ColonyHasEnoughSilver;
 	}
 
 	class MethodReader
 	{
-		static readonly FieldInfo localsField = typeof(MethodBodyReader).GetField("locals", AccessTools.all);
-		static readonly FieldInfo variablesField = typeof(MethodBodyReader).GetField("variables", AccessTools.all);
-		static readonly FieldInfo ilInstructionsField = typeof(MethodBodyReader).GetField("ilInstructions", AccessTools.all);
+		static readonly FieldInfo fieldof_MethodBodyReader_locals = typeof(MethodBodyReader).GetField("locals", AccessTools.all);
+		static readonly FieldInfo fieldof_MethodBodyReader_variables = typeof(MethodBodyReader).GetField("variables", AccessTools.all);
+		static readonly FieldInfo fieldof_MethodBodyReader_ilInstructions = typeof(MethodBodyReader).GetField("ilInstructions", AccessTools.all);
 
 		public static List<ILInstruction> GetInstructions(MethodInfo method)
 		{
 			var reader = new MethodBodyReader(method, generator: null);
 			// Workaround for MethodBodyReader bug where opcodes that have (Short)InlineVar operand type (such as ldloc.s)
 			// can result in a NullReferenceException due to MethodBodyReader.variables being null when generator is null.
-			var locals = (IList<LocalVariableInfo>)localsField.GetValue(reader);
-			variablesField.SetValue(reader, new LocalBuilder[locals.Count]);
+			var locals = (IList<LocalVariableInfo>)fieldof_MethodBodyReader_locals.GetValue(reader);
+			fieldof_MethodBodyReader_variables.SetValue(reader, new LocalBuilder[locals.Count]);
 			reader.ReadInstructions();
-			var instructions = (List<ILInstruction>)ilInstructionsField.GetValue(reader);
+			var instructions = (List<ILInstruction>)fieldof_MethodBodyReader_ilInstructions.GetValue(reader);
 			foreach (var instruction in instructions)
 			{
 				var operandType = instruction.opcode.OperandType;
