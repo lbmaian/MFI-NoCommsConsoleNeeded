@@ -6,7 +6,7 @@ using Harmony;
 using RimWorld;
 using Verse;
 
-namespace MoreFactionInteraction.NoCommsConsole
+namespace NoCommsConsoleRequiredForIncidents
 {
 	class NoCommsConsoleNeededPatcher
 	{

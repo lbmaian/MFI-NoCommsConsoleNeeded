@@ -1,20 +1,22 @@
-# More Faction Interaction Patch - No Comms Console Needed
-Patch/submod for the RimWorld [More Faction Interaction (MFI) mod] to both:
+# No Comms Console Needed For Incidents
+Patch/submod for RimWorld to both:
 1. Remove the powered comms console requirement for some of its incidents.
 2. Allow the silver that is needed for some of its incidents to be in any storage/stockpile rather than within the range of trade beacons. That is, it uses the same "what items are reachable to be sold" logic as in-map trading with visiting trade caravans.
 
-This is primarily to allow medieval/tribal-only playthroughs to have full access to MFI features.
+This was originally a submod for the [More Faction Interaction (MFI) mod] but is now being generalized to patch vanilla incidents and potentially other mods. It no longer requires MFI to be active.
 
-The following MFI incidents are patched to both remove the need for a powered comms console and allow the silver fee to paid from any storage/stockpile (rather than near trade beacons):
-* Mystical shaman
+This is primarily to allow medieval/tribal-only playthroughs to have full access to incidents that normally require comms consoles.
+
+The following incidents are patched to both remove the need for a powered comms console and allow the silver fee to paid from any storage/stockpile (rather than near trade beacons):
+* [Vanilla] Ransom demand
+* [MFI] Mystical shaman
   * Now also works even if the healer mech serum item definition is removed by a mod (such as the [Lord of the Rims - The Third Age mod]).
   * Also patches the requirement that there must exist a non-hostile neolithic (tribal) faction (that the shaman belongs to) such that only a non-hostile non-player faction of any tech level is required.
-* Roadworks
-* Reverse trade request
-* Pirate extortion
-* Wounded combatants (allied faction involved in faction war requests permission to arrive with wounded)
+* [MFI] Roadworks
+* [MFI] Reverse trade request
+* [MFI] Pirate extortion
+* [MFI] Wounded combatants (allied faction involved in faction war requests permission to arrive with wounded)
   * Note: Pawns still arrive in drop pods, and the dialog still talks about transport pods, radios, mortars, etc.
-* (Vanilla incident) Ransom demand
 
 ## Compatibility
 Should be safe to add and remove from existing save games.
@@ -26,12 +28,12 @@ Note: Any mod, which patches the behavior of "what items are reachable to be sol
 ## Credits
 * lbmaian - author
 * pardeike - [Harmony library] that's used for patching at runtime
-* Mehni - [More Faction Interaction (MFI) mod] that this is a submod of
+* Mehni - [More Faction Interaction (MFI) mod] that this was originally a submod of
 * Ludeon - [RimWorld]
 
 ## Links
 * Steam: https://steamcommunity.com/workshop/filedetails/?id=1933275277
-* GitHub: https://github.com/lbmaian/MFI-NoCommsConsoleNeeded
+* GitHub: https://github.com/lbmaian/RimWorld-NoCommsConsoleNeededForIncidents
 
 [Harmony library]: https://github.com/pardeike/Harmony
 [More Faction Interaction (MFI) mod]: https://github.com/Mehni/MoreFactionInteraction

@@ -5,7 +5,7 @@ using System.Reflection.Emit;
 using Harmony;
 using RimWorld;
 
-namespace MoreFactionInteraction.NoCommsConsole
+namespace NoCommsConsoleRequiredForIncidents
 {
 	class TechLevelComparisonPatcher
 	{

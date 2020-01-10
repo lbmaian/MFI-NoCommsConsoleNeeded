@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace MoreFactionInteraction.NoCommsConsole
+namespace NoCommsConsoleRequiredForIncidents
 {
 	public static class TypeExtensions
 	{

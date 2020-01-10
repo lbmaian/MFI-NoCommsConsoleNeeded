@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Manifest>
-    <identifier>MFI-NoCommsConsoleNeeded</identifier>
-    <version>1.1</version>
-    <dependencies>
-        <li>MoreFactionInteraction</li>
-    </dependencies>
-    <manifestUri>https://raw.githubusercontent.com/lbmaian/MFI-NoCommsConsoleNeeded/master/About/Manifest.xml</manifestUri>
-    <downloadUri>https://github.com/lbmaian/MFI-NoCommsConsoleNeeded</downloadUri>
+    <identifier>NoCommsConsoleNeededForIncidents</identifier>
+    <version>1.2</version>
+    <dependencies/>
+    <loadAfter>
+      <li>MoreFactionInteraction</li>
+    </loadAfter>
+    <manifestUri>https://raw.githubusercontent.com/lbmaian/RimWorld-NoCommsConsoleNeededForIncidents/master/About/Manifest.xml</manifestUri>
+    <downloadUri>https://github.com/lbmaian/RimWorld-NoCommsConsoleNeededForIncidents</downloadUri>
 </Manifest>

@@ -9,7 +9,7 @@ using RimWorld;
 using Verse;
 using Verse.AI;
 
-namespace MoreFactionInteraction.NoCommsConsole
+namespace NoCommsConsoleRequiredForIncidents
 {
 	class SilverInTradeBeaconRangeToSilverInStoragePatcher
 	{
