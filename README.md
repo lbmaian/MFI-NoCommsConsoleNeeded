@@ -18,6 +18,8 @@ The following incidents are patched to both remove the need for a powered comms 
 * [MFI] Wounded combatants (allied faction involved in faction war requests permission to arrive with wounded)
   * Note: Pawns still arrive in drop pods, and the dialog still talks about transport pods, radios, mortars, etc.
 
+This mod also currently patches meat determination logic (`ThingDef.IsMeat`) to take into account meat subcategories, which fixes the MFI bumper crop incident sometimes rewarding meats in such subcategories (e.g. salted meats in the Lord of the Rims - The Third Age mod). As this particular patch is only tangentially related to this mod's purpose, it may eventually be moved to another mod (ideally to the mods that introduce such meat subcategories).
+
 ## Compatibility
 Should be safe to add and remove from existing save games.
 
