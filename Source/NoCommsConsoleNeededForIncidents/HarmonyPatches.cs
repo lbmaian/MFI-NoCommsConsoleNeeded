@@ -25,6 +25,8 @@ namespace NoCommsConsoleRequiredForIncidents
 				harmony.PatchAll(typeof(VanillaHarmonyPatches));
 				if (!(ModAssemblies.MoreFactionInteraction is null))
 					harmony.PatchAll(typeof(MoreFactionInteractionHarmonyPatches));
+				Log.Message("Meat_Human.IsMeat: " + DefDatabase<ThingDef>.GetNamed("Meat_Human").IsMeat);
+				Log.Message("Meat_HumanSalted.IsMeat: " + DefDatabase<ThingDef>.GetNamed("Meat_HumanSalted").IsMeat);
 			}
 			finally
 			{

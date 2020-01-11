@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using Harmony;
@@ -231,6 +232,34 @@ namespace NoCommsConsoleRequiredForIncidents
 			[HarmonyTranspiler]
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
 				TechLevelComparisonTranspiler(instructions, TechLevel.Industrial, TechLevel.Neolithic);
+		}
+
+		// This fixes the BumperCrop incident rewarding things that belong to a subcategory of ThingCategoryDefOf.MeatRaw,
+		// e.g. salted meats from Lord of the Rims - The Third Age.
+		// This is fixing the problem at its core, rather than patching WorldObjectComp_SettlementBumperCropComp:
+		// ThingDef.IsMeat is only looking at ThingCategoryDefOf.MeatRaw rather than it and its descendant categories.
+		// TODO: Should LotR Third Age mod be patching this instead?
+		[HarmonyPatch(typeof(ThingDef), nameof(ThingDef.IsMeat), MethodType.Getter)]
+		static class ThingDef_IsMeat_Patch
+		{
+			[HarmonyTranspiler]
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				foreach (var instruction in instructions)
+				{
+					if (instruction.operand == methodof_List_Contains)
+						yield return new CodeInstruction(OpCodes.Call,
+							typeof(ThingDef_IsMeat_Patch).GetMethod(nameof(ContainsAnyMeatCategory), AccessTools.all));
+					else
+						yield return instruction;
+				}
+			}
+
+			static bool ContainsAnyMeatCategory(List<ThingCategoryDef> thingCategories, ThingCategoryDef meatRaw) =>
+				meatRaw.ThisAndChildCategoryDefs.Any(thingCategories.Contains);
+
+			static readonly MethodInfo methodof_List_Contains =
+				typeof(List<ThingCategoryDef>).GetMethod(nameof(List<ThingCategoryDef>.Contains));
 		}
 	}
 }
