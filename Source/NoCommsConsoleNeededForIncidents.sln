@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29609.76
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MFI-NoCommsConsole", "MFI-NoCommsConsole\MFI-NoCommsConsole.csproj", "{4CE95BB4-59AF-46D8-B9EA-934B637A4F5E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoCommsConsoleNeededForIncidents", "NoCommsConsoleNeededForIncidents\NoCommsConsoleNeededForIncidents.csproj", "{4CE95BB4-59AF-46D8-B9EA-934B637A4F5E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
