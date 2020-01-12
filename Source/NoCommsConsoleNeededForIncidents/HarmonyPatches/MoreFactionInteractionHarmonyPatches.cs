@@ -243,23 +243,13 @@ namespace NoCommsConsoleRequiredForIncidents
 		static class ThingDef_IsMeat_Patch
 		{
 			[HarmonyTranspiler]
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			{
-				foreach (var instruction in instructions)
-				{
-					if (instruction.operand == methodof_List_Contains)
-						yield return new CodeInstruction(OpCodes.Call,
-							typeof(ThingDef_IsMeat_Patch).GetMethod(nameof(ContainsAnyMeatCategory), AccessTools.all));
-					else
-						yield return instruction;
-				}
-			}
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
+				Transpilers.MethodReplacer(instructions,
+					typeof(List<ThingCategoryDef>).GetMethod(nameof(List<ThingCategoryDef>.Contains)),
+					typeof(ThingDef_IsMeat_Patch).GetMethod(nameof(ContainsAnyMeatCategory), AccessTools.all));
 
 			static bool ContainsAnyMeatCategory(List<ThingCategoryDef> thingCategories, ThingCategoryDef meatRaw) =>
 				meatRaw.ThisAndChildCategoryDefs.Any(thingCategories.Contains);
-
-			static readonly MethodInfo methodof_List_Contains =
-				typeof(List<ThingCategoryDef>).GetMethod(nameof(List<ThingCategoryDef>.Contains));
 		}
 	}
 }
