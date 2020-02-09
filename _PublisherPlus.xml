@@ -3,7 +3,7 @@
   <Excluded>
     <exclude>.git</exclude>
     <exclude>Source\.vs</exclude>
-    <exclude>Source\MFI-NoCommsConsole\bin</exclude>
-    <exclude>Source\MFI-NoCommsConsole\obj</exclude>
+    <exclude>Source\NoCommsConsoleNeededForIncidents\bin</exclude>
+    <exclude>Source\NoCommsConsoleNeededForIncidents\obj</exclude>
   </Excluded>
 </Configuration>
