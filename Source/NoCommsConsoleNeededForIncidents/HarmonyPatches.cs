@@ -31,19 +31,27 @@ namespace NoCommsConsoleRequiredForIncidents
 				HarmonyInstance.DEBUG = false;
 			}
 		}
+	}
 
-		static void PatchAll(this HarmonyInstance harmony, Type parentType)
+	static class HarmonyPatcher
+	{
+		public static void Patch(this HarmonyInstance harmony, Type type)
 		{
-			foreach (var type in parentType.GetNestedTypes(AccessTools.all))
+			// Following copied from HarmonyInstance.PatchAll(Assembly).
+			var harmonyMethods = type.GetHarmonyMethods();
+			if (harmonyMethods != null && harmonyMethods.Count > 0)
 			{
-				// Following copied from HarmonyInstance.PatchAll(Assembly).
-				var harmonyMethods = type.GetHarmonyMethods();
-				if (harmonyMethods != null && harmonyMethods.Count > 0)
-				{
-					var attributes = HarmonyMethod.Merge(harmonyMethods);
-					var patchProcessor = new PatchProcessor(harmony, type, attributes);
-					patchProcessor.Patch();
-				}
+				var attributes = HarmonyMethod.Merge(harmonyMethods);
+				var patchProcessor = new PatchProcessor(harmony, type, attributes);
+				patchProcessor.Patch();
+			}
+		}
+
+		public static void PatchAll(this HarmonyInstance harmony, Type containerType)
+		{
+			foreach (var type in containerType.GetNestedTypes(AccessTools.all))
+			{
+				harmony.Patch(type);
 			}
 		}
 	}
